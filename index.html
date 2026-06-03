@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, viewport-fit=cover"/>
+<title>🏋️ Rutina Gimnasio</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;min-height:100vh}
+  .container{max-width:480px;margin:0 auto;padding:1.25rem 1rem 3rem}
+
+  /* ── WIZARD ── */
+  .wizard{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem}
+  .wiz-logo{font-size:48px;text-align:center;margin-bottom:1rem}
+  .wiz-title{font-size:24px;font-weight:700;text-align:center;margin-bottom:.5rem}
+  .wiz-sub{font-size:15px;color:#666;text-align:center;margin-bottom:2rem;line-height:1.5}
+  .steps-nav{display:flex;justify-content:center;gap:8px;margin-bottom:2rem}
+  .step-dot{width:10px;height:10px;border-radius:50%;background:#ddd;transition:background .3s}
+  .step-dot.active{background:#1D9E75}
+  .step-dot.done{background:#9FE1CB}
+  .wiz-card{background:#fff;border-radius:20px;padding:1.5rem;box-shadow:0 2px 12px rgba(0,0,0,.08);margin-bottom:1.5rem}
+  .wiz-step-num{display:inline-block;background:#1D9E75;color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:.75rem}
+  .wiz-step-title{font-size:18px;font-weight:700;margin-bottom:.75rem}
+  .wiz-instructions{font-size:14px;color:#444;line-height:1.7}
+  .wiz-instructions li{margin-bottom:.4rem;padding-left:.25rem}
+  .wiz-instructions ol{padding-left:1.2rem}
+  .wiz-instructions .code{background:#f0f0f0;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:13px;margin:.5rem 0;word-break:break-all;line-height:1.5}
+  .wiz-instructions .tip{background:#E8F8F2;border-left:3px solid #1D9E75;padding:10px 12px;border-radius:0 8px 8px 0;margin:.75rem 0;font-size:13px;color:#085041}
+  .wiz-input{width:100%;padding:14px;border:1.5px solid #e0e0e0;border-radius:12px;font-size:15px;margin-top:1rem;background:#fafafa}
+  .wiz-input:focus{outline:none;border-color:#1D9E75;background:#fff}
+  .wiz-input.error{border-color:#E24B4A}
+  .wiz-error{font-size:13px;color:#E24B4A;margin-top:6px;min-height:18px}
+  .wiz-btn{width:100%;padding:16px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;border:none;background:#1D9E75;color:#fff;margin-top:.75rem}
+  .wiz-btn:active{background:#0F6E56}
+  .wiz-btn.secondary{background:#f0f0f0;color:#444;margin-top:.5rem}
+  .wiz-btn.secondary:active{background:#e0e0e0}
+  .wiz-btn:disabled{opacity:.5;cursor:not-allowed}
+  .wiz-testing{font-size:13px;color:#999;text-align:center;margin-top:.75rem;min-height:20px}
+  .wiz-success{text-align:center;padding:1rem 0}
+  .wiz-success .icon{font-size:64px;margin-bottom:1rem}
+  .wiz-success h2{font-size:22px;font-weight:700;margin-bottom:.5rem}
+  .wiz-success p{font-size:15px;color:#666;line-height:1.5}
+
+  /* ── APP ── */
+  .app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .app-title{font-size:22px;font-weight:700}
+  .cfg-btn{background:#f0f0f0;border:none;border-radius:10px;padding:8px 12px;font-size:13px;color:#666;cursor:pointer;display:flex;align-items:center;gap:5px}
+  .cfg-btn:active{background:#e0e0e0}
+  .ctx-bar{background:#fff;border-radius:12px;padding:10px 14px;margin-bottom:1rem;display:flex;gap:12px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .ctx-item{font-size:14px;color:#666}.ctx-item strong{color:#1a1a1a;font-weight:500}
+  .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+  .day-btn{background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:1rem;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+  .day-btn:active{background:#f0faf6}
+  .day-btn.sel{border-color:#1D9E75;background:#e8f8f2}
+  .day-btn .dl{font-size:13px;color:#999;margin-bottom:2px;font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+  .day-btn .dt{font-size:17px;font-weight:700;color:#1a1a1a}
+  .day-btn .ds{font-size:13px;color:#888;margin-top:3px}
+  .day-btn.sel .dl{color:#0F6E56}.day-btn.sel .dt{color:#085041}.day-btn.sel .ds{color:#0F6E56}
+  .tracker{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+  .ref-img{width:100%;height:220px;object-fit:cover;display:block;background:#eee}
+  .no-img{width:100%;height:100px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:14px}
+  .tbody{padding:1.25rem}
+  .ex-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem}
+  .ex-name{font-size:22px;font-weight:700;color:#1a1a1a;line-height:1.2}
+  .ex-counter{font-size:14px;color:#999;text-align:right;white-space:nowrap;margin-left:8px;margin-top:4px}
+  .history-box{background:#FFF8E7;border:1px solid #FFE082;border-radius:10px;padding:10px 12px;margin-bottom:1rem}
+  .history-label{font-size:12px;font-weight:700;color:#F59E0B;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+  .history-series{display:flex;gap:6px;flex-wrap:wrap}
+  .history-serie{font-size:15px;font-weight:500;color:#92400E;background:#FEF3C7;border-radius:7px;padding:4px 10px}
+  .history-when{font-size:12px;color:#B45309;margin-top:4px}
+  .history-loading{font-size:13px;color:#aaa;font-style:italic;margin-bottom:.75rem}
+  .sbadge{display:inline-block;font-size:15px;font-weight:600;padding:6px 16px;border-radius:20px;background:#e8f8f2;color:#0F6E56;margin-bottom:1rem}
+  .inputs-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+  .input-group label{display:block;font-size:13px;color:#666;margin-bottom:5px;font-weight:600}
+  .input-group input{width:100%;padding:16px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:22px;font-weight:700;text-align:center;background:#fafafa;-webkit-appearance:none}
+  .input-group input:focus{outline:none;border-color:#1D9E75;background:#fff}
+  .abtn{width:100%;padding:16px;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;border:1.5px solid #e0e0e0;background:#fff;color:#1a1a1a;-webkit-tap-highlight-color:transparent}
+  .abtn.primary{background:#1D9E75;color:#fff;border:none}
+  .abtn.primary:active{background:#0F6E56}
+  .abtn:active{background:#f5f5f5}
+  .abtn:disabled{opacity:.5;cursor:not-allowed}
+  .decision-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:.5rem}
+  .save-status{font-size:14px;margin-top:8px;min-height:20px;text-align:center}
+  .ok{color:#1D9E75}.err{color:#E24B4A}.loading{color:#999}
+  .progress-wrap{margin-bottom:1rem}
+  .progress-label{display:flex;justify-content:space-between;font-size:13px;color:#999;margin-bottom:5px}
+  .progress-track{height:5px;background:#e0e0e0;border-radius:3px}
+  .progress-fill{height:5px;background:#1D9E75;border-radius:3px;transition:width .3s}
+  .hdots{display:flex;gap:7px;margin-bottom:1rem;flex-wrap:wrap}
+  .dot{width:11px;height:11px;border-radius:50%;background:#e0e0e0;border:1.5px solid #d0d0d0}
+  .dot.done{background:#1D9E75;border-color:#1D9E75}
+  .dot.current{background:#9FE1CB;border-color:#1D9E75}
+  .nav-row{display:flex;align-items:center;margin-bottom:1rem}
+  .back-btn{background:none;border:none;cursor:pointer;font-size:15px;color:#666;padding:0;-webkit-tap-highlight-color:transparent}
+  .sheet-link{font-size:13px;color:#1D9E75;text-decoration:none;margin-left:auto}
+  .sum-card{background:#f8f8f8;border-radius:12px;padding:.75rem 1rem;margin-bottom:.75rem}
+  .sum-ex{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:5px}
+  .sum-series{display:flex;gap:7px;flex-wrap:wrap}
+  .sum-serie{font-size:14px;color:#666;background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:4px 10px}
+  .finish-btn{width:100%;padding:16px;border-radius:12px;background:#1D9E75;color:#fff;font-size:18px;font-weight:700;border:none;cursor:pointer;margin-top:1rem}
+  .finish-btn:active{background:#0F6E56}
+  .check-icon{width:40px;height:40px;background:#e8f8f2;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .hidden{display:none!important}
+
+  /* ── MODAL CONFIGURACION ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end}
+  .modal{background:#fff;border-radius:24px 24px 0 0;padding:1.5rem 1.5rem 2.5rem;width:100%;max-height:80vh;overflow-y:auto}
+  .modal-title{font-size:18px;font-weight:700;margin-bottom:.5rem}
+  .modal-sub{font-size:14px;color:#666;margin-bottom:1.25rem}
+  .modal-close{float:right;background:none;border:none;font-size:22px;color:#999;cursor:pointer;margin-top:-4px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ WIZARD ══════════════════ -->
+<div id="screen-wizard" class="hidden">
+  <div class="wizard">
+    <div class="wiz-logo">🏋️</div>
+    <div class="wiz-title">Rutina Gimnasio</div>
+    <div class="wiz-sub">Configurá tu cuenta una sola vez<br>y la app quedará lista para siempre</div>
+    <div class="steps-nav">
+      <div class="step-dot active" id="dot-0"></div>
+      <div class="step-dot" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+    </div>
+
+    <!-- Paso 1 -->
+    <div id="wiz-step-0" class="wiz-card">
+      <div class="wiz-step-num">Paso 1 de 3</div>
+      <div class="wiz-step-title">📊 Creá tu planilla</div>
+      <div class="wiz-instructions">
+        <p style="margin-bottom:.75rem">Necesitás una copia de la planilla de rutina en tu Google Drive.</p>
+        <ol>
+          <li>Abrí este link y hacé click en <strong>"Usar plantilla"</strong>:</li>
+        </ol>
+        <div class="code">https://docs.google.com/spreadsheets/d/1rNUI4EfiDBk-P9zM5gCauUGOFvDBzsvOD7Rzmuld6v0/copy</div>
+        <div class="tip">✓ Esto crea una copia en tu Drive. La planilla original no se modifica.</div>
+        <ol start="2">
+          <li>Una vez copiada, copiá el <strong>ID</strong> de tu planilla desde la URL del navegador:</li>
+        </ol>
+        <div class="code">docs.google.com/spreadsheets/d/<strong>[ESTE ES EL ID]</strong>/edit</div>
+        <input class="wiz-input" id="inp-sheet-id" placeholder="Pegá el ID de tu planilla aquí" />
+        <div class="wiz-error" id="err-sheet"></div>
+      </div>
+      <button class="wiz-btn" onclick="wizNext(0)">Siguiente →</button>
+    </div>
+
+    <!-- Paso 2 (oculto inicialmente) -->
+    <div id="wiz-step-1" class="wiz-card hidden">
+      <div class="wiz-step-num">Paso 2 de 3</div>
+      <div class="wiz-step-title">⚙️ Instalá el script</div>
+      <div class="wiz-instructions">
+        <p style="margin-bottom:.75rem">El script conecta la app con tu planilla. Solo tarda 2 minutos.</p>
+        <ol>
+          <li>Abrí tu planilla → menú <strong>Extensiones → Apps Script</strong></li>
+          <li>Borrá todo el código que aparece</li>
+          <li>Copiá y pegá el código de este link:</li>
+        </ol>
+        <div class="code">https://carioca-ghUb.github.io/gimnasio/script.gs</div>
+        <ol start="4">
+          <li>Dentro del código, reemplazá <strong>TU_SHEET_ID</strong> con el ID que ingresaste antes:</li>
+        </ol>
+        <div class="code" id="code-sheet-id-hint" style="color:#1D9E75;font-weight:bold"></div>
+        <ol start="5">
+          <li>Guardá (Ctrl+S) con el nombre <strong>"Gimnasio"</strong></li>
+          <li>Click en <strong>Implementar → Nueva implementación</strong></li>
+          <li>Tipo: <strong>Aplicación web</strong></li>
+          <li>Ejecutar como: <strong>Yo</strong> · Acceso: <strong>Cualquier persona</strong></li>
+          <li>Click <strong>Implementar</strong> → autorizá los permisos</li>
+        </ol>
+        <div class="tip">✓ Google te va a pedir que autorices el acceso a tus Sheets. Es necesario para guardar los datos.</div>
+      </div>
+      <button class="wiz-btn" onclick="wizNext(1)">Siguiente →</button>
+      <button class="wiz-btn secondary" onclick="wizBack(1)">← Atrás</button>
+    </div>
+
+    <!-- Paso 3 (oculto inicialmente) -->
+    <div id="wiz-step-2" class="wiz-card hidden">
+      <div class="wiz-step-num">Paso 3 de 3</div>
+      <div class="wiz-step-title">🔗 Conectá la app</div>
+      <div class="wiz-instructions">
+        <p style="margin-bottom:.75rem">Después de implementar el script, Google te da una URL. Pegala acá:</p>
+        <div class="tip">La URL se ve así:<br><span style="font-family:monospace;font-size:12px">https://script.google.com/macros/s/XXXX.../exec</span></div>
+        <input class="wiz-input" id="inp-webhook" placeholder="Pegá la URL del script aquí" />
+        <div class="wiz-error" id="err-webhook"></div>
+      </div>
+      <button class="wiz-btn" id="btn-wiz-finish" onclick="wizFinish()">Probar conexión y finalizar ✓</button>
+      <div class="wiz-testing" id="wiz-testing"></div>
+      <button class="wiz-btn secondary" onclick="wizBack(2)">← Atrás</button>
+    </div>
+
+    <!-- Éxito -->
+    <div id="wiz-success" class="wiz-card hidden">
+      <div class="wiz-success">
+        <div class="icon">🎉</div>
+        <h2>¡Todo listo!</h2>
+        <p style="margin-bottom:1.5rem">Tu app está conectada con tu planilla. Los datos se guardarán automáticamente cada vez que entrenes.</p>
+        <button class="wiz-btn" onclick="launchApp()">Empezar a entrenar →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ APP ══════════════════ -->
+<div id="screen-app" class="hidden">
+  <div class="container">
+
+    <!-- Pantalla: selección de día -->
+    <div id="screen-day">
+      <div class="app-header">
+        <div class="app-title">🏋️ Rutina</div>
+        <button class="cfg-btn" onclick="openConfig()">⚙️ Configurar</button>
+      </div>
+      <div id="ctx-home" class="ctx-bar"></div>
+      <div class="day-grid">
+        <button class="day-btn" onclick="selectDay(0)">
+          <div class="dl">Día 1</div><div class="dt">Piernas A</div><div class="ds">Prensa · Cuádriceps</div>
+        </button>
+        <button class="day-btn" onclick="selectDay(1)">
+          <div class="dl">Día 2</div><div class="dt">Torso A</div><div class="ds">Espalda · Bíceps</div>
+        </button>
+        <button class="day-btn" onclick="selectDay(2)">
+          <div class="dl">Día 3</div><div class="dt">Piernas B</div><div class="ds">Glúteos · Isquio</div>
+        </button>
+        <button class="day-btn" onclick="selectDay(3)">
+          <div class="dl">Día 4</div><div class="dt">Torso B</div><div class="ds">Pecho · Tríceps</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pantalla: tracker de ejercicio -->
+    <div id="screen-tracker" class="hidden">
+      <div class="nav-row">
+        <button class="back-btn" onclick="goBack()">← Cambiar día</button>
+        <a id="sheet-link" class="sheet-link" href="#" target="_blank">Ver planilla</a>
+      </div>
+      <div id="ctx-tracker" class="ctx-bar"></div>
+      <div style="height:.5rem"></div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Progreso</span><span id="progress-text"></span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+      <div id="hdots" class="hdots"></div>
+      <div class="tracker">
+        <img id="ref-img" class="ref-img" src="" alt="" style="display:none"/>
+        <div id="no-img-ph" class="no-img">📷 Sin imagen de referencia</div>
+        <div class="tbody">
+          <div class="ex-header">
+            <div class="ex-name" id="ex-name"></div>
+            <div class="ex-counter" id="ex-counter"></div>
+          </div>
+          <div id="history-box" class="history-box hidden">
+            <div class="history-label">📊 Última vez</div>
+            <div id="history-series" class="history-series"></div>
+            <div id="history-when" class="history-when"></div>
+          </div>
+          <div id="history-loading" class="history-loading hidden">Buscando historial...</div>
+          <div class="sbadge" id="serie-badge"></div>
+          <div class="inputs-row">
+            <div class="input-group">
+              <label for="inp-peso">Peso (kg)</label>
+              <input type="number" id="inp-peso" placeholder="45" inputmode="decimal" step="0.5" min="0"/>
+            </div>
+            <div class="input-group">
+              <label for="inp-reps">Repeticiones</label>
+              <input type="number" id="inp-reps" placeholder="12" inputmode="numeric" step="1" min="0"/>
+            </div>
+          </div>
+          <div id="btn-next-wrap">
+            <button class="abtn primary" id="btn-completar" onclick="nextSerie()">Completar serie →</button>
+            <div class="save-status" id="save-status"></div>
+          </div>
+          <div id="decision-wrap" class="hidden" style="padding-top:.75rem">
+            <p style="font-size:14px;color:#666;margin-bottom:.5rem">Serie 3 completada. ¿Qué hacemos?</p>
+            <div class="decision-btns">
+              <button class="abtn" onclick="addExtraSerie()">+ Serie extra</button>
+              <button class="abtn primary" onclick="nextExercise()">Siguiente →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pantalla: resumen -->
+    <div id="screen-summary" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
+        <div class="check-icon">✓</div>
+        <span style="font-size:18px;font-weight:700" id="sum-title"></span>
+      </div>
+      <p style="font-size:13px;color:#1D9E75;margin-bottom:1rem">✓ Datos guardados en tu planilla</p>
+      <div id="sum-content"></div>
+      <button class="finish-btn" onclick="resetAll()">Nueva sesión ↺</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════ MODAL CONFIGURACIÓN ══════════════════ -->
+<div id="modal-config" class="modal-overlay hidden">
+  <div class="modal">
+    <button class="modal-close" onclick="closeConfig()">✕</button>
+    <div class="modal-title">⚙️ Configuración</div>
+    <div class="modal-sub">Cambiá tu webhook o volvé a ver el tutorial de configuración.</div>
+    <label style="font-size:13px;font-weight:600;color:#666;display:block;margin-bottom:6px">URL del script (webhook)</label>
+    <input class="wiz-input" id="modal-webhook" placeholder="https://script.google.com/macros/s/.../exec" style="margin-top:0"/>
+    <label style="font-size:13px;font-weight:600;color:#666;display:block;margin-top:1rem;margin-bottom:6px">ID de tu planilla</label>
+    <input class="wiz-input" id="modal-sheet-id" placeholder="ID de Google Sheets" style="margin-top:0"/>
+    <button class="wiz-btn" style="margin-top:1rem" onclick="saveConfig()">Guardar cambios</button>
+    <button class="wiz-btn secondary" onclick="resetWizard()">Ver tutorial de configuración</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATOS DE LA RUTINA
+// ══════════════════════════════════════════════
+const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const IMG_BASE = 'https://drive.google.com/thumbnail?id=';
+
+const IMAGES = {
+  "Prensa 45°":"1om-4x5Ymz85mcwx19f9tbHtDqlbWN-tJ",
+  "Aductores (interno)":"1AOzj2FSsf2TFcIfjTHa1J3fQ-AKCI0fL",
+  "Extensión Cuádricep":"1n45a2Jbbm1yRpMhTyWngHLGhACgoFe9b",
+  "Sentadilla":"1N_X0m2CAbxQubuflz5jNEwXTvIbU_WQP",
+  "Vuelos lat":"1NiV3eApIOl-QL0ub0LewNsQvQO5cRJ8W",
+  "Jalón al chope":"1XPx6SSu-VgqhBi0_fODtxIjjJeTB4yhZ",
+  "Remo gironda":"1lEeEFhlvZNLfgxBW3NjWTwOJgpy8lL_1",
+  "Posteriori":"1IUwnX1c2e5PiCWnCvXObUUIvvrBMFlp-",
+  "Pull over (polea)":"1uscvp83WDerKhs3SNDeCyRrcDwr1HI3F",
+  "Bícep barra W libre":"1o8CJTEhgjGiWhaJGtYMsaOFC0PRG1ugs",
+  "Bícep mancuerna martillo":"19YMlt4bI5_vglmE53_prMq1Pzbcu8qI5",
+  "Hip thrust (glúteos)":"1LEFOryV50dHhgj2LfdyG9Z7Xfnuo7l1V",
+  "Gemelos":"1INPnYAMw-0JRMGdjqYvTLjx6lLdouNlc",
+  "Camilla femoral sentado (isquio)":"1KPizKAjzGDgTWsM1MB4FhfKQy4iKAoZO",
+  "Abductores (externos)":"1d7Gb_5aRner4qjRlsjQ6fPDPBt61E0Qo",
+  "Vuelos laterales":"1NiV3eApIOl-QL0ub0LewNsQvQO5cRJ8W",
+  "Pecho inclinado":"1g3FkThl1LMWZEEsKW8fCwLnzS3dJq3_V",
+  "Pec fly":"1DDqo-kdwx7vgNVs_Dhw2ZBklxWAQeINz",
+  "Hammer":"1B8_UjaIbP78iBHlc9tGePjAdplU4GyZI",
+  "Extensión trícep (Polea)":"19TjScOrhtsTXonHe7LsC3SCEFLXMMI4P",
+  "Press militar":"1tDLCBWJ4E7pHFT4b6R_RtC2kaVkku12l"
+};
+
+const DAYS = [
+  { label:"Día 1 — Piernas A", exercises:["Prensa 45°","Aductores (interno)","Extensión Cuádricep","Sentadilla","Vuelos lat","Cardio"] },
+  { label:"Día 2 — Torso A",   exercises:["Jalón al chope","Remo gironda","Posteriori","Pull over (polea)","Bícep barra W libre","Bícep mancuerna martillo","Cardio"] },
+  { label:"Día 3 — Piernas B", exercises:["Hip thrust (glúteos)","Gemelos","Camilla femoral sentado (isquio)","Abductores (externos)","Vuelos laterales","Cardio"] },
+  { label:"Día 4 — Torso B",   exercises:["Pecho inclinado","Pec fly","Hammer","Extensión trícep (Polea)","Press militar","Cardio"] }
+];
+
+const EX_ROWS = {
+  "Prensa 45°":5,"Aductores (interno)":6,"Extensión Cuádricep":7,"Sentadilla":8,"Vuelos lat":9,"Cardio_1":10,
+  "Jalón al chope":13,"Remo gironda":14,"Posteriori":15,"Pull over (polea)":16,"Bícep barra W libre":17,"Bícep mancuerna martillo":18,"Cardio_2":19,
+  "Hip thrust (glúteos)":22,"Gemelos":23,"Camilla femoral sentado (isquio)":24,"Abductores (externos)":25,"Vuelos laterales":26,"Cardio_3":27,
+  "Pecho inclinado":30,"Pec fly":31,"Hammer":32,"Extensión trícep (Polea)":33,"Press militar":34,"Cardio_4":35
+};
+const WEEK_COLS = { 1:["C","D","E"], 2:["G","H","I"], 3:["K","L","M"], 4:["O","P","Q"] };
+
+// ══════════════════════════════════════════════
+// CONFIGURACIÓN (localStorage)
+// ══════════════════════════════════════════════
+function getCfg() {
+  return {
+    webhook: localStorage.getItem('gym_webhook') || '',
+    sheetId: localStorage.getItem('gym_sheet_id') || ''
+  };
+}
+function saveCfg(webhook, sheetId) {
+  localStorage.setItem('gym_webhook', webhook);
+  localStorage.setItem('gym_sheet_id', sheetId);
+}
+
+// ══════════════════════════════════════════════
+// INICIO — mostrar wizard o app
+// ══════════════════════════════════════════════
+window.onload = function() {
+  const cfg = getCfg();
+  if (cfg.webhook && cfg.sheetId) {
+    showApp();
+  } else {
+    show('screen-wizard');
+  }
+};
+
+function showApp() {
+  show('screen-app');
+  const cfg = getCfg();
+  document.getElementById('sheet-link').href =
+    'https://docs.google.com/spreadsheets/d/' + cfg.sheetId;
+  renderCtxBar('ctx-home');
+  showScreen('screen-day');
+}
+
+function launchApp() {
+  show('screen-app');
+  showApp();
+}
+
+// ══════════════════════════════════════════════
+// WIZARD
+// ══════════════════════════════════════════════
+let wizSheetId = '';
+
+function wizNext(step) {
+  if (step === 0) {
+    const val = document.getElementById('inp-sheet-id').value.trim();
+    if (!val || val.length < 10) {
+      document.getElementById('err-sheet').textContent = 'Ingresá un ID de planilla válido';
+      document.getElementById('inp-sheet-id').classList.add('error');
+      return;
+    }
+    document.getElementById('err-sheet').textContent = '';
+    document.getElementById('inp-sheet-id').classList.remove('error');
+    wizSheetId = val;
+    document.getElementById('code-sheet-id-hint').textContent = 'const SHEET_ID = "' + val + '";';
+  }
+  document.getElementById('wiz-step-' + step).classList.add('hidden');
+  document.getElementById('wiz-step-' + (step+1)).classList.remove('hidden');
+  document.getElementById('dot-' + step).classList.remove('active');
+  document.getElementById('dot-' + step).classList.add('done');
+  document.getElementById('dot-' + (step+1)).classList.add('active');
+}
+
+function wizBack(step) {
+  document.getElementById('wiz-step-' + step).classList.add('hidden');
+  document.getElementById('wiz-step-' + (step-1)).classList.remove('hidden');
+  document.getElementById('dot-' + step).classList.remove('active');
+  document.getElementById('dot-' + (step-1)).classList.remove('done');
+  document.getElementById('dot-' + (step-1)).classList.add('active');
+}
+
+async function wizFinish() {
+  const webhook = document.getElementById('inp-webhook').value.trim();
+  if (!webhook.includes('script.google.com')) {
+    document.getElementById('err-webhook').textContent = 'La URL debe ser de script.google.com';
+    document.getElementById('inp-webhook').classList.add('error');
+    return;
+  }
+  document.getElementById('err-webhook').textContent = '';
+  document.getElementById('inp-webhook').classList.remove('error');
+  const btn = document.getElementById('btn-wiz-finish');
+  btn.disabled = true;
+  document.getElementById('wiz-testing').textContent = 'Probando conexión...';
+  try {
+    const resp = await fetch(webhook, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'ping' })
+    });
+    saveCfg(webhook, wizSheetId);
+    document.getElementById('wiz-step-2').classList.add('hidden');
+    document.getElementById('wiz-success').classList.remove('hidden');
+    document.getElementById('wiz-testing').textContent = '';
+  } catch(e) {
+    document.getElementById('wiz-testing').textContent = '⚠ No se pudo conectar. Verificá la URL e intentá de nuevo.';
+    btn.disabled = false;
+  }
+}
+
+function resetWizard() {
+  closeConfig();
+  localStorage.removeItem('gym_webhook');
+  localStorage.removeItem('gym_sheet_id');
+  // Reset wizard state
+  for(let i=0;i<3;i++){
+    document.getElementById('wiz-step-'+i).classList.toggle('hidden', i!==0);
+    document.getElementById('dot-'+i).classList.remove('active','done');
+  }
+  document.getElementById('dot-0').classList.add('active');
+  document.getElementById('wiz-success').classList.add('hidden');
+  document.getElementById('inp-sheet-id').value='';
+  document.getElementById('inp-webhook').value='';
+  show('screen-wizard');
+}
+
+// ══════════════════════════════════════════════
+// MODAL CONFIGURACIÓN
+// ══════════════════════════════════════════════
+function openConfig() {
+  const cfg = getCfg();
+  document.getElementById('modal-webhook').value = cfg.webhook;
+  document.getElementById('modal-sheet-id').value = cfg.sheetId;
+  document.getElementById('modal-config').classList.remove('hidden');
+}
+function closeConfig() {
+  document.getElementById('modal-config').classList.add('hidden');
+}
+function saveConfig() {
+  const webhook = document.getElementById('modal-webhook').value.trim();
+  const sheetId = document.getElementById('modal-sheet-id').value.trim();
+  if (!webhook || !sheetId) return;
+  saveCfg(webhook, sheetId);
+  document.getElementById('sheet-link').href = 'https://docs.google.com/spreadsheets/d/' + sheetId;
+  closeConfig();
+}
+
+// ══════════════════════════════════════════════
+// APP — LÓGICA DE ENTRENAMIENTO
+// ══════════════════════════════════════════════
+function getCtx() {
+  const now = new Date();
+  return {
+    month: now.getMonth(),
+    monthName: MONTHS[now.getMonth()],
+    week: Math.min(4, Math.ceil(now.getDate()/7)),
+    dayStr: now.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
+  };
+}
+
+let ctx = getCtx();
+let currentDay=null, currentEx=0, currentSerie=1, maxSeries=3, session=[];
+
+function renderCtxBar(id) {
+  document.getElementById(id).innerHTML =
+    '<div class="ctx-item">📅 <strong>'+ctx.dayStr+'</strong></div>'+
+    '<div class="ctx-item">📋 <strong>'+ctx.monthName+' · Sem. '+ctx.week+'</strong></div>';
+}
+
+function selectDay(idx) {
+  currentDay=idx; currentEx=0; currentSerie=1; maxSeries=3;
+  ctx = getCtx();
+  session = DAYS[idx].exercises.map(function(n){ return {name:n,series:[]}; });
+  showScreen('screen-tracker');
+  renderCtxBar('ctx-tracker');
+  renderTracker();
+}
+
+async function renderTracker() {
+  const exList = DAYS[currentDay].exercises;
+  const exName = exList[currentEx];
+  document.getElementById('ex-name').textContent = exName;
+  document.getElementById('ex-counter').textContent = 'Ejercicio '+(currentEx+1)+' de '+exList.length;
+  document.getElementById('serie-badge').textContent = 'Serie '+currentSerie+' de '+maxSeries;
+  const pct = Math.round((currentEx/exList.length)*100);
+  document.getElementById('progress-fill').style.width = pct+'%';
+  document.getElementById('progress-text').textContent = currentEx+' de '+exList.length+' ejercicios';
+  document.getElementById('hdots').innerHTML = exList.map(function(_,i){
+    return '<div class="dot'+(i<currentEx?' done':i===currentEx?' current':'')+'" title="'+exList[i]+'"></div>';
+  }).join('');
+  const imgId = IMAGES[exName];
+  const imgEl = document.getElementById('ref-img');
+  const ph = document.getElementById('no-img-ph');
+  if(imgId){ imgEl.src=IMG_BASE+imgId+'&sz=w600'; imgEl.alt=exName; imgEl.style.display='block'; ph.style.display='none'; }
+  else { imgEl.style.display='none'; ph.style.display='flex'; }
+  document.getElementById('inp-peso').value='';
+  document.getElementById('inp-reps').value='';
+  document.getElementById('save-status').textContent='';
+  document.getElementById('save-status').className='save-status';
+  document.getElementById('btn-next-wrap').classList.remove('hidden');
+  document.getElementById('decision-wrap').classList.add('hidden');
+  document.getElementById('btn-completar').disabled=false;
+  document.getElementById('history-box').classList.add('hidden');
+  if(exName !== 'Cardio') {
+    document.getElementById('history-loading').classList.remove('hidden');
+    await loadHistory(exName);
+  } else {
+    document.getElementById('history-loading').classList.add('hidden');
+  }
+}
+
+async function loadHistory(exName) {
+  const key = exName === 'Cardio' ? 'Cardio_'+(currentDay+1) : exName;
+  const row = EX_ROWS[key];
+  if(!row) { document.getElementById('history-loading').classList.add('hidden'); return; }
+  try {
+    const resp = await fetch(getCfg().webhook, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'history', exRow:row, currentMonth:ctx.month, currentWeek:ctx.week })
+    });
+    const data = await resp.json();
+    document.getElementById('history-loading').classList.add('hidden');
+    if(data.ok && data.found) {
+      document.getElementById('history-series').innerHTML = data.series.map(function(s,i){
+        return '<span class="history-serie">S'+(i+1)+': '+s+'</span>';
+      }).join('');
+      document.getElementById('history-when').textContent = data.label;
+      document.getElementById('history-box').classList.remove('hidden');
+    }
+  } catch(e) {
+    document.getElementById('history-loading').classList.add('hidden');
+  }
+}
+
+async function saveToSheet(exName, dayIdx, serieNum, peso, reps) {
+  if(!peso && !reps) return;
+  const key = exName==='Cardio' ? 'Cardio_'+(dayIdx+1) : exName;
+  const row = EX_ROWS[key];
+  if(!row) return;
+  const cols = WEEK_COLS[ctx.week];
+  const col = cols[serieNum-1];
+  if(!col) return;
+  const status = document.getElementById('save-status');
+  status.textContent = 'Guardando...';
+  status.className = 'save-status loading';
+  try {
+    const resp = await fetch(getCfg().webhook, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'save', sheet:ctx.monthName, cell:col+row, value:(peso||'?')+'*'+(reps||'?') })
+    });
+    const data = await resp.json();
+    if(data.ok){
+      status.textContent = '✓ Guardado en '+ctx.monthName+'!'+col+row;
+      status.className = 'save-status ok';
+    } else {
+      status.textContent = '⚠ Error: '+data.error;
+      status.className = 'save-status err';
+    }
+  } catch(err) {
+    status.textContent = '⚠ Error de conexión';
+    status.className = 'save-status err';
+  }
+}
+
+async function nextSerie() {
+  const peso = document.getElementById('inp-peso').value;
+  const reps = document.getElementById('inp-reps').value;
+  const exName = DAYS[currentDay].exercises[currentEx];
+  session[currentEx].series.push({serie:currentSerie, peso:peso||'—', reps:reps||'—'});
+  const btn = document.getElementById('btn-completar');
+  btn.disabled=true;
+  await saveToSheet(exName, currentDay, currentSerie, peso, reps);
+  btn.disabled=false;
+  if(currentSerie < maxSeries){
+    currentSerie++;
+    document.getElementById('serie-badge').textContent = 'Serie '+currentSerie+' de '+maxSeries;
+    document.getElementById('inp-peso').value='';
+    document.getElementById('inp-reps').value='';
+  } else {
+    document.getElementById('btn-next-wrap').classList.add('hidden');
+    document.getElementById('decision-wrap').classList.remove('hidden');
+    document.getElementById('serie-badge').textContent = 'Serie '+currentSerie+' completada ✓';
+  }
+}
+
+function addExtraSerie(){
+  maxSeries++; currentSerie++;
+  document.getElementById('decision-wrap').classList.add('hidden');
+  document.getElementById('btn-next-wrap').classList.remove('hidden');
+  document.getElementById('serie-badge').textContent = 'Serie '+currentSerie+' de '+maxSeries;
+  document.getElementById('save-status').textContent='';
+  document.getElementById('inp-peso').value='';
+  document.getElementById('inp-reps').value='';
+  document.getElementById('btn-completar').disabled=false;
+}
+
+function nextExercise(){
+  if(currentEx+1 >= DAYS[currentDay].exercises.length){ showSummary(); return; }
+  currentEx++; currentSerie=1; maxSeries=3;
+  renderTracker();
+}
+
+function showSummary(){
+  showScreen('screen-summary');
+  document.getElementById('sum-title').textContent = DAYS[currentDay].label+' completado';
+  document.getElementById('sum-content').innerHTML = session.map(function(ex){
+    const s = ex.series.map(function(s){ return '<span class="sum-serie">S'+s.serie+': '+s.peso+'kg × '+s.reps+'</span>'; }).join('');
+    return '<div class="sum-card"><div class="sum-ex">'+ex.name+'</div><div class="sum-series">'+(s||'<span class="sum-serie" style="color:#aaa">Sin datos</span>')+'</div></div>';
+  }).join('');
+}
+
+function goBack(){ showScreen('screen-day'); }
+function resetAll(){ currentDay=null; ctx=getCtx(); renderCtxBar('ctx-home'); showScreen('screen-day'); }
+
+function show(id){
+  ['screen-wizard','screen-app'].forEach(function(s){
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+function showScreen(id){
+  ['screen-day','screen-tracker','screen-summary'].forEach(function(s){
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+</script>
+</body>
+</html>
