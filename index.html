@@ -390,15 +390,18 @@ const EX_ROWS={
 };
 const WEEK_COLS={1:["C","D","E"],2:["G","H","I"],3:["K","L","M"],4:["O","P","Q"]};
 
-function getCfg(){return{webhook:localStorage.getItem('gym_webhook')||'',sheetId:localStorage.getItem('gym_sheet_id')||''};}
+function getCfg(){
+  return{
+    webhook:localStorage.getItem('gym_webhook')||DEFAULT_WEBHOOK,
+    sheetId:localStorage.getItem('gym_sheet_id')||DEFAULT_SHEET
+  };
+}
 function saveCfg(w,s){localStorage.setItem('gym_webhook',w);localStorage.setItem('gym_sheet_id',s);}
 
 var DEFAULT_WEBHOOK='https://script.google.com/macros/s/AKfycbw9_nmhG27FfG673uCJkL3WLH737HaqiVEYnBehva2aikmciR5qM_SaugUlkdbOiXXA/exec';
 var DEFAULT_SHEET='1rNUI4EfiDBk-P9zM5gCauUGOFvDBzsvOD7Rzmuld6v0';
 
 window.onload=function(){
-  var cfg=getCfg();
-  if(!cfg.webhook||!cfg.sheetId){ saveCfg(DEFAULT_WEBHOOK,DEFAULT_SHEET); }
   showApp();
 };
 
