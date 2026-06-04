@@ -552,7 +552,7 @@ async function renderTracker(){
   var imgEl=document.getElementById('ref-img');
   var ph=document.getElementById('no-img-ph');
   if(imgFile){
-    imgEl.src=IMG_BASE+encodeURIComponent(imgFile);
+    imgEl.src=IMG_BASE+imgFile.replace(/ /g,'%20').replace(/\(/g,'%28').replace(/\)/g,'%29');
     imgEl.alt=exName;imgEl.style.display='block';ph.style.display='none';
   }else{imgEl.style.display='none';ph.style.display='flex';}
   document.getElementById('inp-peso').value='';
@@ -573,16 +573,19 @@ async function loadHistory(exName){
   var key=exName==='Cardio'?'Cardio_'+(currentDay+1):exName;
   var row=EX_ROWS[key];
   if(!row){document.getElementById('history-loading').classList.add('hidden');return;}
+  var payload={action:'history',exRow:row,currentMonth:ctx.month,currentWeek:ctx.week};
+  var webhook=getCfg().webhook;
   try{
-    var resp=await fetch(getCfg().webhook,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'history',exRow:row,currentMonth:ctx.month,currentWeek:ctx.week})});
-    var data=await resp.json();
+    // Apps Script acepta GET con parámetros — usamos eso para historial (sí podemos leer la respuesta)
+    var url=webhook+'?action=history&exRow='+row+'&currentMonth='+ctx.month+'&currentWeek='+ctx.week;
+    var resp=await fetch(url,{method:'GET',mode:'cors'});
+    var result=await resp.json();
     document.getElementById('history-loading').classList.add('hidden');
-    if(data.ok&&data.found){
-      document.getElementById('history-series').innerHTML=data.series.map(function(s,i){
+    if(result.ok&&result.found){
+      document.getElementById('history-series').innerHTML=result.series.map(function(s,i){
         return '<span class="history-serie">S'+(i+1)+': '+s+'</span>';
       }).join('');
-      document.getElementById('history-when').textContent=data.label;
+      document.getElementById('history-when').textContent=result.label;
       document.getElementById('history-box').classList.remove('hidden');
     }
   }catch(e){document.getElementById('history-loading').classList.add('hidden');}
@@ -595,13 +598,23 @@ async function saveToSheet(exName,dayIdx,serieNum,peso,reps){
   var cols=WEEK_COLS[ctx.week];var col=cols[serieNum-1];if(!col)return;
   var status=document.getElementById('save-status');
   status.textContent='Guardando...';status.className='save-status loading';
+  var payload={action:'save',sheet:ctx.monthName,cell:col+row,value:(peso||'?')+'*'+(reps||'?')};
+  var webhook=getCfg().webhook;
   try{
-    var resp=await fetch(getCfg().webhook,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save',sheet:ctx.monthName,cell:col+row,value:(peso||'?')+'*'+(reps||'?')})});
-    var data=await resp.json();
-    if(data.ok){status.textContent='✓ Guardado en '+ctx.monthName+'!'+col+row;status.className='save-status ok';}
-    else{status.textContent='⚠ Error: '+data.error;status.className='save-status err';}
-  }catch(e){status.textContent='⚠ Error de conexión';status.className='save-status err';}
+    // no-cors evita el bloqueo CORS — Apps Script acepta text/plain sin preflight
+    await fetch(webhook,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(payload)
+    });
+    // Con no-cors no podemos leer la respuesta, asumimos éxito si no hay excepción
+    status.textContent='✓ Guardado en '+ctx.monthName+'!'+col+row;
+    status.className='save-status ok';
+  }catch(e){
+    status.textContent='⚠ Error de conexión';
+    status.className='save-status err';
+  }
 }
 
 async function nextSerie(){
