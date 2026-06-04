@@ -349,7 +349,7 @@
 
 <script>
 const MONTHS=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const IMG_BASE='https://raw.githubusercontent.com/carioca-gHub/gimnasio/main/imagenes%20de%20referencia/';
+const IMG_BASE='https://raw.githubusercontent.com/carioca-gHub/gimnasio/main/Imagenes%20de%20referencia/';
 
 const IMAGES={
   "Prensa 45°":              "Prensa 45.jpg",
@@ -403,6 +403,12 @@ var DEFAULT_SHEET='1rNUI4EfiDBk-P9zM5gCauUGOFvDBzsvOD7Rzmuld6v0';
 
 window.onload=function(){
   showApp();
+  if(loadState()){
+    ctx=getCtx();
+    showScreen('screen-tracker');
+    renderCtxBar('ctx-tracker');
+    renderTracker();
+  }
 };
 
 function showApp(){
@@ -497,6 +503,24 @@ function getCtx(){
 var ctx=getCtx();
 var currentDay=null,currentEx=0,currentSerie=1,maxSeries=3,session=[];
 
+function saveState(){
+  if(currentDay===null){localStorage.removeItem('gym_state');return;}
+  localStorage.setItem('gym_state',JSON.stringify({
+    currentDay:currentDay,currentEx:currentEx,
+    currentSerie:currentSerie,maxSeries:maxSeries,session:session
+  }));
+}
+function loadState(){
+  try{
+    var s=localStorage.getItem('gym_state');
+    if(!s)return false;
+    var st=JSON.parse(s);
+    currentDay=st.currentDay;currentEx=st.currentEx;
+    currentSerie=st.currentSerie;maxSeries=st.maxSeries;session=st.session;
+    return true;
+  }catch(e){return false;}
+}
+
 function renderCtxBar(id){
   document.getElementById(id).innerHTML=
     '<div class="ctx-item">📅 <strong>'+ctx.dayStr+'</strong></div>'+
@@ -506,6 +530,7 @@ function renderCtxBar(id){
 function selectDay(idx){
   currentDay=idx;currentEx=0;currentSerie=1;maxSeries=3;ctx=getCtx();
   session=DAYS[idx].exercises.map(function(n){return{name:n,series:[]};});
+  saveState();
   showScreen('screen-tracker');
   renderCtxBar('ctx-tracker');
   renderTracker();
@@ -589,6 +614,7 @@ async function nextSerie(){
   btn.disabled=false;
   if(currentSerie<maxSeries){
     currentSerie++;
+    saveState();
     document.getElementById('serie-badge').textContent='Serie '+currentSerie+' de '+maxSeries;
     document.getElementById('inp-peso').value='';document.getElementById('inp-reps').value='';
   }else{
@@ -608,7 +634,9 @@ function addExtraSerie(){
 }
 function nextExercise(){
   if(currentEx+1>=DAYS[currentDay].exercises.length){showSummary();return;}
-  currentEx++;currentSerie=1;maxSeries=3;renderTracker();
+  currentEx++;currentSerie=1;maxSeries=3;
+  saveState();
+  renderTracker();
 }
 function showSummary(){
   showScreen('screen-summary');
@@ -619,7 +647,7 @@ function showSummary(){
   }).join('');
 }
 function goBack(){showScreen('screen-day');}
-function resetAll(){currentDay=null;ctx=getCtx();renderCtxBar('ctx-home');showScreen('screen-day');}
+function resetAll(){currentDay=null;ctx=getCtx();saveState();renderCtxBar('ctx-home');showScreen('screen-day');}
 function show(id){['screen-wizard','screen-app'].forEach(function(s){document.getElementById(s).classList.toggle('hidden',s!==id);});}
 function showScreen(id){['screen-day','screen-tracker','screen-summary'].forEach(function(s){document.getElementById(s).classList.toggle('hidden',s!==id);});}
 </script>
