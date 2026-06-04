@@ -403,6 +403,13 @@ var DEFAULT_SHEET='1rNUI4EfiDBk-P9zM5gCauUGOFvDBzsvOD7Rzmuld6v0';
 
 window.onload=function(){
   showApp();
+  // Cargar GIDs reales desde la planilla
+  fetch(getCfg().webhook+'?action=gids',{method:'GET',mode:'cors'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.ok&&d.gids) SHEET_GIDS=d.gids;
+      updateSheetLink();
+    }).catch(function(){});
   if(loadState()){
     ctx=getCtx();
     showScreen('screen-tracker');
@@ -415,6 +422,7 @@ function showApp(){
   show('screen-app');
   var cfg=getCfg();
   document.getElementById('sheet-link').href='https://docs.google.com/spreadsheets/d/'+cfg.sheetId;
+  updateSheetLink();
   ctx=getCtx();
   renderCtxBar('ctx-home');
   showScreen('screen-day');
@@ -500,6 +508,19 @@ function getCtx(){
     dayStr:now.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
   };
 }
+// GIDs de cada hoja (pestaña) de la planilla — obtenidos desde Google Sheets
+var SHEET_GIDS={
+  "Enero":0,"Febrero":1,"Marzo":2,"Abril":3,"Mayo":4,"Junio":5,
+  "Julio":6,"Agosto":7,"Septiembre":8,"Octubre":9,"Noviembre":10,"Diciembre":11
+};
+
+function updateSheetLink(){
+  var cfg=getCfg();
+  var gid=SHEET_GIDS[ctx.monthName];
+  var url='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+(gid!==undefined?'/edit#gid='+gid:'');
+  document.getElementById('sheet-link').href=url;
+}
+
 var ctx=getCtx();
 var currentDay=null,currentEx=0,currentSerie=1,maxSeries=3,session=[];
 
@@ -531,6 +552,7 @@ function selectDay(idx){
   currentDay=idx;currentEx=0;currentSerie=1;maxSeries=3;ctx=getCtx();
   session=DAYS[idx].exercises.map(function(n){return{name:n,series:[]};});
   saveState();
+  updateSheetLink();
   showScreen('screen-tracker');
   renderCtxBar('ctx-tracker');
   renderTracker();
