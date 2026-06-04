@@ -225,8 +225,8 @@
         <input class="wiz-input" id="inp-webhook" placeholder="https://script.google.com/macros/s/.../exec"/>
         <div class="wiz-error" id="err-webhook"></div>
       </div>
-      <button class="wiz-btn" id="btn-wiz-finish" onclick="wizFinish()">Probar y finalizar ✓</button>
-      <div class="wiz-testing" id="wiz-testing"></div>
+      <button class="wiz-btn" id="btn-wiz-finish" onclick="wizFinish()">Guardar y finalizar ✓</button>
+      
       <button class="wiz-btn secondary" onclick="wizBack(2)">← Atrás</button>
     </div>
 
@@ -435,7 +435,7 @@ function wizBack(step){
   document.getElementById('dot-'+(step-1)).classList.remove('done');
   document.getElementById('dot-'+(step-1)).classList.add('active');
 }
-async function wizFinish(){
+function wizFinish(){
   var webhook=document.getElementById('inp-webhook').value.trim();
   if(!webhook.includes('script.google.com')){
     document.getElementById('err-webhook').textContent='La URL debe ser de script.google.com';
@@ -443,19 +443,9 @@ async function wizFinish(){
   }
   document.getElementById('err-webhook').textContent='';
   document.getElementById('inp-webhook').classList.remove('error');
-  var btn=document.getElementById('btn-wiz-finish');
-  btn.disabled=true;
-  document.getElementById('wiz-testing').textContent='Probando conexión...';
-  try{
-    await fetch(webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'ping'})});
-    saveCfg(webhook,wizSheetId);
-    document.getElementById('wiz-step-2').classList.add('hidden');
-    document.getElementById('wiz-success').classList.remove('hidden');
-    document.getElementById('wiz-testing').textContent='';
-  }catch(e){
-    document.getElementById('wiz-testing').textContent='⚠ No se pudo conectar. Verificá la URL.';
-    btn.disabled=false;
-  }
+  saveCfg(webhook,wizSheetId);
+  document.getElementById('wiz-step-2').classList.add('hidden');
+  document.getElementById('wiz-success').classList.remove('hidden');
 }
 function resetWizard(){
   closeConfig();
